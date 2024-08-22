@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VR mit Kamera-Feed und Würfel Platzierung</title>
+  <title>VR Target Shooter Game</title>
   <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
   <style>
     body, html {
@@ -23,55 +23,69 @@
       transform: translate(-50%, -50%);
       z-index: 10;
     }
+    #scoreboard {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      color: white;
+      font-size: 20px;
+      font-family: Arial, sans-serif;
+      z-index: 10;
+    }
   </style>
 </head>
 <body>
-  <!-- Crosshair -->
+  <div id="scoreboard">Score: 0</div>
   <div class="crosshair"></div>
 
-  <a-scene vr-mode-ui="enabled: true">
-    <!-- Kamera-Feed als Hintergrund -->
-    <a-assets>
-      <video id="videoFeed" autoplay playsinline="true" loop="true" width="1280" height="720"></video>
-    </a-assets>
+  <a-scene>
+    <!-- Umgebung -->
+    <a-sky color="#000033"></a-sky>
     
-    <a-videosphere src="#videoFeed" rotation="0 -90 0"></a-videosphere>
-    
-    <!-- Kamera Entity -->
+    <!-- Kamera mit Steuerung -->
     <a-entity id="cameraRig" camera look-controls wasd-controls position="0 1.6 0">
     </a-entity>
+
+    <!-- Lichtquellen -->
+    <a-light type="ambient" color="#666"></a-light>
+    <a-light type="directional" color="#ffffff" position="-0.5 1 1"></a-light>
+
+    <!-- Ziele (verschiedene Positionen) -->
+    <a-box position="-2 2 -5" color="#FF0000" class="target"></a-box>
+    <a-box position="2 1.5 -7" color="#00FF00" class="target"></a-box>
+    <a-box position="0 1 -4" color="#0000FF" class="target"></a-box>
+
+    <!-- Boden -->
+    <a-plane rotation="-90 0 0" width="100" height="100" color="#004400"></a-plane>
   </a-scene>
 
   <script>
-    // Zugriff auf die Kamera und den Video-Feed starten
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-      .then(function(stream) {
-        const video = document.getElementById('videoFeed');
-        video.srcObject = stream;
-        video.play();
-      });
+    let score = 0;
 
-    // Würfel platzieren, wo der Benutzer hinsieht
-    document.querySelector('a-scene').addEventListener('click', function() {
-      const cameraRig = document.getElementById('cameraRig');
-      const position = cameraRig.getAttribute('position');
-      const rotation = cameraRig.getAttribute('rotation');
+    // Funktion zur Aktualisierung des Scoreboards
+    function updateScoreboard() {
+      document.getElementById('scoreboard').innerText = `Score: ${score}`;
+    }
 
-      // Position des Würfels berechnen
-      const cubeX = position.x + Math.sin(THREE.Math.degToRad(rotation.y));
-      const cubeY = position.y;
-      const cubeZ = position.z + Math.cos(THREE.Math.degToRad(rotation.y));
+    // Ziel zerstören, wenn es angeklickt wird
+    document.querySelector('a-scene').addEventListener('click', function(event) {
+      const target = event.target;
 
-      // Würfel erstellen und zur Szene hinzufügen
-      const scene = document.querySelector('a-scene');
-      const cube = document.createElement('a-box');
-      cube.setAttribute('position', `${cubeX} ${cubeY} ${cubeZ}`);
-      cube.setAttribute('rotation', '0 45 0');
-      cube.setAttribute('color', '#FF0000');
-      cube.setAttribute('depth', '0.5');
-      cube.setAttribute('height', '0.5');
-      cube.setAttribute('width', '0.5');
-      scene.appendChild(cube);
+      if (target.classList.contains('target')) {
+        // Ziel entfernen
+        target.parentNode.removeChild(target);
+        
+        // Score erhöhen
+        score += 10;
+        updateScoreboard();
+        
+        // Neues Ziel hinzufügen
+        const newTarget = document.createElement('a-box');
+        newTarget.setAttribute('position', `${(Math.random() - 0.5) * 10} ${(Math.random() * 3) + 1} -${(Math.random() * 10) + 5}`);
+        newTarget.setAttribute('color', '#' + Math.floor(Math.random() * 16777215).toString(16));
+        newTarget.classList.add('target');
+        document.querySelector('a-scene').appendChild(newTarget);
+      }
     });
   </script>
 </body>
