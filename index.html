@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Google Cardboard VR-Raum mit Bewegung und Crosshair</title>
+  <title>AR Gesichtserkennung mit Würfel</title>
   <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  <script src="https://rawcdn.githack.com/AR-js-org/AR.js/1.7.6/aframe/build/aframe-ar.min.js"></script>
   <style>
     body, html {
       margin: 0;
@@ -12,42 +13,43 @@
       height: 100%;
       overflow: hidden;
     }
-    .crosshair {
-      position: fixed;
-      left: 50%;
-      top: 50%;
-      width: 10px;
-      height: 10px;
-      background-color: red;
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 10;
-    }
   </style>
 </head>
 <body>
-  <div class="crosshair"></div>
-
-  <a-scene>
-    <!-- Roter Würfel -->
-    <a-box position="0 1.5 -3" rotation="0 45 0" color="#FF0000" depth="1" height="1" width="1"></a-box>
-
-    <!-- Kamera mit Bewegung -->
-    <a-entity id="cameraRig" position="0 1.6 0">
-      <a-camera wasd-controls="acceleration: 100" look-controls="pointerLockEnabled: true">
-        <!-- Crosshair-Ring, der an der Kamera befestigt ist -->
-        <a-entity position="0 0 -1.5" geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03" material="color: red; shader: flat"></a-entity>
-      </a-camera>
+  <a-scene embedded arjs="trackingMethod: best;">
+    <!-- AR Gesichtserkennung -->
+    <a-entity camera>
+      <a-marker-camera preset="hiro"></a-marker-camera>
     </a-entity>
 
-    <!-- Umgebungslicht -->
-    <a-light type="ambient" color="#888"></a-light>
-
-    <!-- Richtungslampe -->
-    <a-light type="directional" intensity="0.5" position="-1 1 0"></a-light>
-
-    <!-- Hintergrund -->
-    <a-sky color="#ECECEC"></a-sky>
+    <!-- Würfel, der bei Gesichtserkennung angezeigt wird -->
+    <a-box position="0 0.5 0" rotation="0 45 0" color="#FF0000" depth="0.5" height="0.5" width="0.5"
+           visible="false" id="faceCube"></a-box>
   </a-scene>
+
+  <script>
+    navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.play();
+
+      const faceCube = document.getElementById('faceCube');
+
+      const faceDetector = new FaceDetector({ fastMode: true });
+      
+      function detectFace() {
+        faceDetector.detect(video).then(faces => {
+          if (faces.length > 0) {
+            faceCube.setAttribute('visible', true);
+          } else {
+            faceCube.setAttribute('visible', false);
+          }
+          requestAnimationFrame(detectFace);
+        });
+      }
+
+      detectFace();
+    });
+  </script>
 </body>
 </html>
