@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Google Cardboard VR-Raum</title>
+  <title>Google Cardboard VR-Raum mit Bewegung und Crosshair</title>
   <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
   <style>
     body, html {
@@ -12,17 +12,31 @@
       height: 100%;
       overflow: hidden;
     }
+    /* Crosshair Style */
+    .crosshair {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      width: 2px;
+      height: 2px;
+      background-color: red;
+      border-radius: 50%;
+      z-index: 10;
+    }
   </style>
 </head>
 <body>
+  <div class="crosshair"></div>
+
   <a-scene>
     <!-- Roter Würfel -->
     <a-box position="0 1.5 -3" rotation="0 45 0" color="#FF0000" depth="1" height="1" width="1"></a-box>
 
-    <!-- Kamera -->
-    <a-entity camera wasd-controls look-controls>
-      <!-- Google Cardboard Unterstützungs-Komponente -->
-      <a-entity position="0 0 0" rotation="0 0 0" camera></a-entity>
+    <!-- Kamera mit Bewegungserkennung -->
+    <a-entity id="cameraRig" position="0 1.6 0">
+      <a-camera wasd-controls="acceleration: 200" look-controls>
+        <a-entity position="0 0 -1.5" geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03" material="color: red; shader: flat"></a-entity>
+      </a-camera>
     </a-entity>
 
     <!-- Umgebungslicht -->
@@ -34,5 +48,24 @@
     <!-- Hintergrund -->
     <a-sky color="#ECECEC"></a-sky>
   </a-scene>
+
+  <script>
+    // Bewegungserkennung basierend auf Device-Orientation-API
+    if (window.DeviceMotionEvent) {
+      window.addEventListener('devicemotion', function(event) {
+        const cameraRig = document.getElementById('cameraRig');
+        const accX = event.acceleration.x || 0;
+        const accY = event.acceleration.y || 0;
+        const accZ = event.acceleration.z || 0;
+
+        // Bewegt die Kamera basierend auf der Beschleunigung
+        let position = cameraRig.getAttribute('position');
+        position.x += accX * 0.05;
+        position.y += accY * 0.05;
+        position.z += accZ * 0.05;
+        cameraRig.setAttribute('position', position);
+      });
+    }
+  </script>
 </body>
 </html>
