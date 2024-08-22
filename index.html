@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VR Target Shooter Game</title>
+  <title>VR Story Game - The Lost Journey</title>
   <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
   <style>
     body, html {
@@ -23,70 +23,116 @@
       transform: translate(-50%, -50%);
       z-index: 10;
     }
-    #scoreboard {
+    #loadingBarContainer {
       position: fixed;
-      top: 10px;
-      left: 10px;
-      color: white;
-      font-size: 20px;
-      font-family: Arial, sans-serif;
+      bottom: 20px;
+      left: 50%;
+      width: 50%;
+      height: 20px;
+      background-color: gray;
+      transform: translateX(-50%);
       z-index: 10;
+    }
+    #loadingBar {
+      width: 100%;
+      height: 100%;
+      background-color: green;
+      transition: width 10s linear;
     }
   </style>
 </head>
 <body>
-  <div id="scoreboard">Score: 0</div>
   <div class="crosshair"></div>
+  <div id="loadingBarContainer">
+    <div id="loadingBar"></div>
+  </div>
 
   <a-scene>
-    <!-- Umgebung -->
-    <a-sky color="#000033"></a-sky>
+    <!-- Hintergrund -->
+    <a-sky color="#333333"></a-sky>
     
-    <!-- Kamera mit Steuerung -->
-    <a-entity id="cameraRig" camera look-controls wasd-controls position="0 1.6 0">
+    <!-- Kamera -->
+    <a-entity id="cameraRig" camera look-controls position="0 1.6 0">
     </a-entity>
 
-    <!-- Lichtquellen -->
-    <a-light type="ambient" color="#666"></a-light>
-    <a-light type="directional" color="#ffffff" position="-0.5 1 1"></a-light>
+    <!-- Lichtquelle -->
+    <a-light type="ambient" color="#999"></a-light>
 
-    <!-- Ziele (verschiedene Positionen) -->
-    <a-box position="-2 2 -5" color="#FF0000" class="target"></a-box>
-    <a-box position="2 1.5 -7" color="#00FF00" class="target"></a-box>
-    <a-box position="0 1 -4" color="#0000FF" class="target"></a-box>
+    <!-- Story-Elemente (erste Szene) -->
+    <a-text id="storyText" value="You wake up in a dark forest. What will you do?" align="center" position="0 2.5 -4" color="#FFFFFF" width="6"></a-text>
 
-    <!-- Boden -->
-    <a-plane rotation="-90 0 0" width="100" height="100" color="#004400"></a-plane>
+    <!-- Entscheidungsoptionen -->
+    <a-entity id="option1" geometry="primitive: plane; width: 4; height: 1" material="color: #FF0000" position="-2 1 -3">
+      <a-text value="Explore the forest" align="center" position="0 0 0.1" color="#FFFFFF" width="3"></a-text>
+    </a-entity>
+
+    <a-entity id="option2" geometry="primitive: plane; width: 4; height: 1" material="color: #0000FF" position="2 1 -3">
+      <a-text value="Stay where you are" align="center" position="0 0 0.1" color="#FFFFFF" width="3"></a-text>
+    </a-entity>
   </a-scene>
 
   <script>
-    let score = 0;
+    let selectedOption = null;
+    const options = ['option1', 'option2'];
+    let countdownTimer = 10;
+    const loadingBar = document.getElementById('loadingBar');
+    const storyText = document.getElementById('storyText');
 
-    // Funktion zur Aktualisierung des Scoreboards
-    function updateScoreboard() {
-      document.getElementById('scoreboard').innerText = `Score: ${score}`;
+    function startCountdown() {
+      loadingBar.style.width = '100%';
+      const interval = setInterval(() => {
+        countdownTimer--;
+        loadingBar.style.width = `${(countdownTimer / 10) * 100}%`;
+
+        if (countdownTimer <= 0) {
+          clearInterval(interval);
+          triggerOutcome();
+        }
+      }, 1000);
     }
 
-    // Ziel zerstören, wenn es angeklickt wird
-    document.querySelector('a-scene').addEventListener('click', function(event) {
-      const target = event.target;
-
-      if (target.classList.contains('target')) {
-        // Ziel entfernen
-        target.parentNode.removeChild(target);
-        
-        // Score erhöhen
-        score += 10;
-        updateScoreboard();
-        
-        // Neues Ziel hinzufügen
-        const newTarget = document.createElement('a-box');
-        newTarget.setAttribute('position', `${(Math.random() - 0.5) * 10} ${(Math.random() * 3) + 1} -${(Math.random() * 10) + 5}`);
-        newTarget.setAttribute('color', '#' + Math.floor(Math.random() * 16777215).toString(16));
-        newTarget.classList.add('target');
-        document.querySelector('a-scene').appendChild(newTarget);
+    function triggerOutcome() {
+      // Zeige das Ergebnis basierend auf der Auswahl oder zufällige Wahl
+      if (selectedOption) {
+        if (selectedOption === 'option1') {
+          storyText.setAttribute('value', 'You venture into the forest...');
+        } else if (selectedOption === 'option2') {
+          storyText.setAttribute('value', 'You wait and something mysterious happens...');
+        }
+      } else {
+        // Zufällige Auswahl, wenn keine Wahl getroffen wurde
+        const randomOption = options[Math.floor(Math.random() * options.length)];
+        if (randomOption === 'option1') {
+          storyText.setAttribute('value', 'You venture into the forest...');
+        } else {
+          storyText.setAttribute('value', 'You wait and something mysterious happens...');
+        }
       }
+      
+      // Entferne Optionen
+      options.forEach(option => {
+        document.getElementById(option).setAttribute('visible', 'false');
+      });
+
+      // Lade die nächste Szene (kann nach Belieben erweitert werden)
+    }
+
+    options.forEach(optionId => {
+      const option = document.getElementById(optionId);
+      option.addEventListener('mouseenter', function () {
+        selectedOption = optionId;
+        option.setAttribute('scale', '1.2 1.2 1.2');
+      });
+
+      option.addEventListener('mouseleave', function () {
+        if (selectedOption === optionId) {
+          selectedOption = null;
+          option.setAttribute('scale', '1 1 1');
+        }
+      });
     });
+
+    startCountdown();
   </script>
 </body>
 </html>
