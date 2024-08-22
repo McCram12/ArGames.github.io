@@ -12,15 +12,15 @@
       height: 100%;
       overflow: hidden;
     }
-    /* Crosshair Style */
     .crosshair {
       position: fixed;
       left: 50%;
       top: 50%;
-      width: 2px;
-      height: 2px;
+      width: 10px;
+      height: 10px;
       background-color: red;
       border-radius: 50%;
+      transform: translate(-50%, -50%);
       z-index: 10;
     }
   </style>
@@ -32,9 +32,10 @@
     <!-- Roter Würfel -->
     <a-box position="0 1.5 -3" rotation="0 45 0" color="#FF0000" depth="1" height="1" width="1"></a-box>
 
-    <!-- Kamera mit Bewegungserkennung -->
+    <!-- Kamera mit Bewegung -->
     <a-entity id="cameraRig" position="0 1.6 0">
-      <a-camera wasd-controls="acceleration: 200" look-controls>
+      <a-camera wasd-controls="acceleration: 100" look-controls="pointerLockEnabled: true">
+        <!-- Crosshair-Ring, der an der Kamera befestigt ist -->
         <a-entity position="0 0 -1.5" geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03" material="color: red; shader: flat"></a-entity>
       </a-camera>
     </a-entity>
@@ -48,24 +49,5 @@
     <!-- Hintergrund -->
     <a-sky color="#ECECEC"></a-sky>
   </a-scene>
-
-  <script>
-    // Bewegungserkennung basierend auf Device-Orientation-API
-    if (window.DeviceMotionEvent) {
-      window.addEventListener('devicemotion', function(event) {
-        const cameraRig = document.getElementById('cameraRig');
-        const accX = event.acceleration.x || 0;
-        const accY = event.acceleration.y || 0;
-        const accZ = event.acceleration.z || 0;
-
-        // Bewegt die Kamera basierend auf der Beschleunigung
-        let position = cameraRig.getAttribute('position');
-        position.x += accX * 0.05;
-        position.y += accY * 0.05;
-        position.z += accZ * 0.05;
-        cameraRig.setAttribute('position', position);
-      });
-    }
-  </script>
 </body>
 </html>
