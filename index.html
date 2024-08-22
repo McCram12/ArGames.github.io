@@ -16,8 +16,8 @@
       position: fixed;
       left: 50%;
       top: 50%;
-      width: 20px;
-      height: 20px;
+      width: 10px;
+      height: 10px;
       background-color: red;
       border-radius: 50%;
       transform: translate(-50%, -50%);
@@ -59,7 +59,7 @@
     <a-light type="ambient" color="#999"></a-light>
 
     <!-- Startbildschirm -->
-    <a-text id="startText" value="Nicken Sie, um zu starten" align="center" position="0 2.5 -4" color="#FFFFFF" width="6"></a-text>
+    <a-text id="startText" value="Nicken Sie 5 Mal, um zu starten" align="center" position="0 2.5 -4" color="#FFFFFF" width="6"></a-text>
 
     <!-- Tutorial -->
     <a-text id="tutorialText" value="Zielen Sie auf die Schaltflächen, um Entscheidungen zu treffen." align="center" position="0 1.5 -4" color="#FFFFFF" width="6" visible="false"></a-text>
@@ -83,6 +83,8 @@
     let countdownTimer = 10;
     let tutorialShown = false;
     let gameStarted = false;
+    let nodCount = 0;
+    let detectionEnabled = false;
     const loadingBar = document.getElementById('loadingBar');
     const startText = document.getElementById('startText');
     const tutorialText = document.getElementById('tutorialText');
@@ -132,12 +134,18 @@
     }
 
     function checkForNod() {
+      if (!detectionEnabled) return;
+      
       const cameraRig = document.getElementById('cameraRig');
       const rotation = cameraRig.getAttribute('rotation');
 
       // Überprüfen, ob der Spieler nach oben und unten genickt hat
       if (rotation.x > 20 || rotation.x < -20) {
-        if (!gameStarted) {
+        nodCount++;
+        console.log('Nicken erkannt:', nodCount);
+
+        // Nach 5 Nicken Spiel starten
+        if (nodCount >= 5) {
           startGame();
         }
       }
@@ -145,6 +153,7 @@
 
     function startGame() {
       gameStarted = true;
+      detectionEnabled = false;
       startText.setAttribute('visible', 'false');
       tutorialText.setAttribute('visible', 'true');
 
@@ -172,7 +181,12 @@
       });
     });
 
-    // Überprüfe kontinuierlich auf ein Nicken
+    // Nicken-Detektion nach 5 Sekunden aktivieren
+    setTimeout(() => {
+      detectionEnabled = true;
+    }, 5000);
+
+    // Überprüfe kontinuierlich auf ein Nicken alle 500ms
     setInterval(checkForNod, 500);
   </script>
 </body>
