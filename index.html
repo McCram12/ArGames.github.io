@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Cardboard VR-Raum</title>
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <a-scene>
+    <!-- Roter Würfel -->
+    <a-box position="0 1.5 -3" rotation="0 45 0" color="#FF0000" depth="1" height="1" width="1"></a-box>
+
+    <!-- Kamera -->
+    <a-entity camera wasd-controls look-controls>
+      <!-- Google Cardboard Unterstützungs-Komponente -->
+      <a-entity position="0 0 0" rotation="0 0 0" camera></a-entity>
+    </a-entity>
+
+    <!-- Umgebungslicht -->
+    <a-light type="ambient" color="#888"></a-light>
+
+    <!-- Richtungslampe -->
+    <a-light type="directional" intensity="0.5" position="-1 1 0"></a-light>
+
+    <!-- Hintergrund -->
+    <a-sky color="#ECECEC"></a-sky>
+  </a-scene>
+</body>
+</html>
